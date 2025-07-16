@@ -15,13 +15,13 @@ def generate_sensor_data(assets, weather_df, start_date, end_date, time_interval
         'Precip. Amount (mm)': 'precipitation',
         'Wind Spd (km/h)': 'wind_speed'
     })
-    weather_df['timestamp'] = weather_df['timestamp'].astype(str)
+    weather_df['timestamp'] = pd.to_datetime(weather_df['timestamp'])
     weather_df.set_index('timestamp', inplace=True)
 
     current_time = start_date
     while current_time < end_date:
         # 获取最近的天气信息
-        weather_info = weather_df.asof(current_time.strftime('%Y-%m-%d %H:%M'))
+        weather_info = weather_df.asof(current_time)
         ext_temp = weather_info.get('external_temp_c', 10)
         humidity = weather_info.get('humidity', 50)
         precipitation = weather_info.get('precipitation', 0)
@@ -41,38 +41,38 @@ def generate_sensor_data(assets, weather_df, start_date, end_date, time_interval
             internal_temp_c = round(spec['temp_range'][0] + (power_load_kw / spec['load_range'][1]) * 25 + (ext_temp / 5), 2)
             voltage = round(spec['voltage'] * 1000 + np.random.normal(0, 5), 2)
 
-            # --- Failure Injection Logic (与天气等特征相关) ---
+            # --- Failure Injection Logic (目标1.5%故障率) ---
             failure_label = 0
-            prob_of_failure = 0.0001  # 基础概率
+            prob_of_failure = 0.012  # 基础概率提升
 
             # 温度压力
-            if internal_temp_c > spec['temp_range'][1] * 1.05:
+            if internal_temp_c > spec['temp_range'][1] * 1.01:
                 prob_of_failure += 0.01
-            if internal_temp_c > spec['temp_range'][1] * 1.10:
-                prob_of_failure += 0.05
-            if ext_temp > 35 or ext_temp < -15:
-                prob_of_failure += 0.01  # 极端外部温度
+            if internal_temp_c > spec['temp_range'][1] * 1.05:
+                prob_of_failure += 0.03
+            if ext_temp > 30 or ext_temp < -10:
+                prob_of_failure += 0.01
 
             # 负载压力
-            if power_load_kw > spec['load_range'][1] * 1.15:
+            if power_load_kw > spec['load_range'][1] * 1.10:
                 prob_of_failure += 0.01
-            if power_load_kw > spec['load_range'][1] * 1.25:
-                prob_of_failure += 0.05
+            if power_load_kw > spec['load_range'][1] * 1.20:
+                prob_of_failure += 0.03
 
             # 天气相关压力
-            if humidity > 90 and precipitation > 5:
-                prob_of_failure += 0.01  # 高湿+大雨
-            if precipitation > 20:
-                prob_of_failure += 0.02  # 暴雨
-            if wind_speed > 50:
+            if humidity > 85 and precipitation > 2:
+                prob_of_failure += 0.01
+            if precipitation > 10:
+                prob_of_failure += 0.02
+            if wind_speed > 30:
                 prob_of_failure += 0.02
                 if asset['asset_type'] == 'power_line':
-                    prob_of_failure += 0.03  # 输电线更易受风影响
-            if wind_speed > 80:
-                prob_of_failure += 0.05  # 极端大风
+                    prob_of_failure += 0.03
+            if wind_speed > 60:
+                prob_of_failure += 0.04
 
             # 极端天气叠加
-            if (wind_speed > 50 and precipitation > 10) or (humidity > 95 and ext_temp < 0):
+            if (wind_speed > 30 and precipitation > 5) or (humidity > 90 and ext_temp < 5):
                 prob_of_failure += 0.03
 
             # 极小概率的偶发故障
@@ -97,3 +97,32 @@ def generate_sensor_data(assets, weather_df, start_date, end_date, time_interval
             })
         current_time += timedelta(minutes=time_interval_minutes)
     return sensor_records
+
+import pandas as pd
+from datetime import datetime
+
+ASSET_SPECS = {
+    "power_line": {"load_range": (20, 50), "temp_range": (0, 80), "voltage": 13.8},
+    "transformer": {"load_range": (200, 300), "temp_range": (0, 120), "voltage": 690},
+    "substation": {"load_range": (15, 60), "temp_range": (0, 60), "voltage": 138}
+}
+
+if __name__ == "__main__":
+    # 读取资产
+    assets_df = pd.read_csv("Data/grid_assets.csv")
+    assets = assets_df.to_dict(orient="records")
+
+    # 读取天气
+    weather_df = pd.read_csv("Data/weather/en_climate_hourly_NS_8200573_01-2022_P1H.csv")
+
+    # 时间范围
+    start_date = datetime(2022, 1, 1)
+    end_date = datetime(2023, 1, 1)
+    time_interval_minutes = 60
+
+    # 生成数据
+    records = generate_sensor_data(
+        assets, weather_df, start_date, end_date, time_interval_minutes, ASSET_SPECS
+    )
+    df = pd.DataFrame(records)
+    df.to_csv("Data/sensor_readings.csv", index=False)

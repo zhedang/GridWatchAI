@@ -1,0 +1,59 @@
+.asset-icon-list {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto; /* Keep this in case of smaller screens, but it shouldn't be needed on yours */
+    padding: 6px;
+    background-color: rgba(30, 30, 30, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+  }
+  
+  .asset-icon {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px; /* Reduced padding */
+    margin-bottom: 4px; /* Reduced margin */
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    color: white;
+    min-width: 160px; /* Reduced overall width */
+  }
+  
+  .asset-icon:hover {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+  
+  .status-dot {
+    width: 10px; /* Smaller dot */
+    height: 10px; /* Smaller dot */
+    border-radius: 50%;
+    margin-right: 8px; /* Reduced margin */
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+  
+  .status-normal {
+    background-color: #28a745;
+    box-shadow: 0 0 6px #28a745;
+  }
+  
+  .status-failure {
+    background-color: #dc3545;
+    box-shadow: 0 0 6px #dc3545;
+  }
+  
+  /* A single class for the new compact text format */
+  .asset-info-compact {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* A clean font */
+    font-size: 13px; /* A balanced font size */
+    font-weight: 500;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }

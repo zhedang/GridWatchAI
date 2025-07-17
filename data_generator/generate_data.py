@@ -17,6 +17,10 @@ def generate_sensor_data(assets, weather_df, start_date, end_date, time_interval
     })
     weather_df['timestamp'] = pd.to_datetime(weather_df['timestamp'])
     weather_df.set_index('timestamp', inplace=True)
+    
+    print(f"Weather data shape: {weather_df.shape}")
+    print(f"Weather columns: {list(weather_df.columns)}")
+    print(f"Weather index range: {weather_df.index.min()} to {weather_df.index.max()}")
 
     current_time = start_date
     while current_time < end_date:
@@ -26,6 +30,16 @@ def generate_sensor_data(assets, weather_df, start_date, end_date, time_interval
         humidity = weather_info.get('humidity', 50)
         precipitation = weather_info.get('precipitation', 0)
         wind_speed = weather_info.get('wind_speed', 10)
+        
+        # 处理NaN值
+        if pd.isna(ext_temp):
+            ext_temp = 10
+        if pd.isna(humidity):
+            humidity = 50
+        if pd.isna(precipitation):
+            precipitation = 0
+        if pd.isna(wind_speed):
+            wind_speed = 10
 
         for asset in assets:
             spec = asset_specs[asset['asset_type']]
@@ -38,18 +52,13 @@ def generate_sensor_data(assets, weather_df, start_date, end_date, time_interval
             if ext_temp > 25: load_multiplier += (ext_temp - 25) / 20
             if ext_temp < 0: load_multiplier += abs(ext_temp) / 30
             power_load_kw = round(base_load * load_multiplier + np.random.normal(0, 2), 2)
-            internal_temp_c = round(spec['temp_range'][0] + (power_load_kw / spec['load_range'][1]) * 25 + (ext_temp / 5), 2)
             voltage = round(spec['voltage'] * 1000 + np.random.normal(0, 5), 2)
 
             # --- Failure Injection Logic (目标1.5%故障率) ---
             failure_label = 0
             prob_of_failure = 0.012  # 基础概率提升
 
-            # 温度压力
-            if internal_temp_c > spec['temp_range'][1] * 1.01:
-                prob_of_failure += 0.01
-            if internal_temp_c > spec['temp_range'][1] * 1.05:
-                prob_of_failure += 0.03
+            # 温度压力（基于外部温度）
             if ext_temp > 30 or ext_temp < -10:
                 prob_of_failure += 0.01
 
@@ -83,7 +92,6 @@ def generate_sensor_data(assets, weather_df, start_date, end_date, time_interval
                 failure_label = 1
                 # 故障时读数异常
                 power_load_kw *= random.uniform(1.5, 2.0)
-                internal_temp_c *= random.uniform(1.2, 1.4)
                 voltage *= random.uniform(0.9, 0.95)
 
             sensor_records.append({
@@ -91,7 +99,6 @@ def generate_sensor_data(assets, weather_df, start_date, end_date, time_interval
                 'asset_id': asset['asset_id'],
                 'timestamp': current_time.isoformat(),
                 'power_load_kw': power_load_kw,
-                'temperature_c': internal_temp_c,
                 'voltage': voltage,
                 'failure_label': failure_label
             })
@@ -112,12 +119,12 @@ if __name__ == "__main__":
     assets_df = pd.read_csv("Data/grid_assets.csv")
     assets = assets_df.to_dict(orient="records")
 
-    # 读取天气
-    weather_df = pd.read_csv("Data/weather/en_climate_hourly_NS_8200573_01-2022_P1H.csv")
+    # 读取天气（使用合并后的weather.csv）
+    weather_df = pd.read_csv("Data/weather.csv")
 
-    # 时间范围
-    start_date = datetime(2022, 1, 1)
-    end_date = datetime(2023, 1, 1)
+    # 时间范围（调整为2024年）
+    start_date = datetime(2024, 1, 1)
+    end_date = datetime(2025, 1, 1)
     time_interval_minutes = 60
 
     # 生成数据

@@ -2,9 +2,9 @@ import React from 'react';
 import { MapContainer, TileLayer, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import AssetMarker from './AssetMarker'; // Import our new component
+import AssetMarker from './AssetMarker'; // Make sure this import is correct
 
-// Keep the icon definitions here, as they only need to be created once.
+// Icon definitions
 const greenIcon = new L.Icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -23,13 +23,17 @@ const redIcon = new L.Icon({
     shadowSize: [41, 41]
 });
 
-const AssetMap = ({ assetsToDisplay }) => {
+// There should only be ONE declaration of AssetMap
+const AssetMap = ({ assetsToDisplay, onAssetSelect }) => {
     const assetsWithCoords = assetsToDisplay.filter(asset => asset.location_lat != null && asset.location_lon != null);
 
     if (assetsWithCoords.length === 0) {
         return (
             <MapContainer center={[44.6, -63.6]} zoom={10} style={{ height: '100%', width: '100%' }}>
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <TileLayer
+                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                />
                 <Popup position={[44.6, -63.6]}>No assets with location data to display.</Popup>
             </MapContainer>
         );
@@ -44,18 +48,16 @@ const AssetMap = ({ assetsToDisplay }) => {
     return (
         <MapContainer center={center} zoom={12} style={{ height: '100%', width: '100%' }}>
             <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             />
-            {/* Now we just map over the assets and render our smart AssetMarker component,
-              passing the asset data and icons down as props.
-            */}
             {assetsWithCoords.map(asset => (
                 <AssetMarker
                     key={asset.asset_id}
                     asset={asset}
                     greenIcon={greenIcon}
                     redIcon={redIcon}
+                    onSelect={onAssetSelect}
                 />
             ))}
         </MapContainer>

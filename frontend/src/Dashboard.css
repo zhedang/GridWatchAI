@@ -1,31 +1,24 @@
-/* 全局背景和字体颜色 */
+/* Global background and font colors */
 body {
     background-color: #0f172a;
     color: #e2e8f0;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Inter', sans-serif;
   }
   
+  /* Main grid layout container */
   .dashboard-container {
     display: grid;
     height: 100vh;
     padding: 20px;
     gap: 20px;
-    
-    /* --- 关键改动在这里 --- */
-  
-    /* 1. 定义三列，并指定它们的宽度比例 */
-    grid-template-columns: 1fr 2.5fr 1fr; /* 左1份, 中2.5份, 右1份 */
-    
-    /* 2. 定义两行，标题行和内容行 */
+    grid-template-columns: 1fr 2.5fr 1fr;
     grid-template-rows: auto 1fr;
-  
-    /* 3. 定义网格区域，实现三栏布局 */
     grid-template-areas:
       "header  header         header"
       "details main-map       right-sidebar";
   }
   
-  /* 每个面板的通用样式 (无变动) */
+  /* Universal panel styling */
   .dashboard-panel {
     background-color: rgba(30, 41, 59, 0.7);
     border: 1px solid rgba(51, 65, 85, 1);
@@ -38,29 +31,26 @@ body {
     -webkit-backdrop-filter: blur(5px);
   }
   
-  /* --- 为每个区域分配名称 (最终版) --- */
+  /* Grid area assignments */
   .title-bar-area { grid-area: header; }
   .details-area { grid-area: details; }
   .main-map-area { grid-area: main-map; }
   .right-sidebar-area { 
     grid-area: right-sidebar;
-    /* 移除内边距，因为子元素会有自己的面板样式 */
     padding: 0; 
-    /* 我们让这个容器透明，只作为布局工具 */
     background-color: transparent;
     border: none;
     backdrop-filter: none;
   }
   
-  /* 新增：用于右侧栏内部堆叠的容器 */
   .right-sidebar-stack {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* 让两个小面板之间有间隙 */
+    gap: 20px;
     height: 100%;
   }
   
-  /* 面板内标题的简单样式 (无变动) */
+  /* Panel title styling */
   .panel-title {
     margin: 0 0 15px 0;
     font-size: 18px;
@@ -69,10 +59,96 @@ body {
     border-bottom: 1px solid rgba(51, 65, 85, 1);
     padding-bottom: 10px;
   }
+  
+  /* Map tile filter */
   .main-map-area .leaflet-tile-pane {
-    filter:
-      hue-rotate(300deg)   /* 继续沿用同一色相偏移 */
-      saturate(70%)        /* 稍微压低饱和度，避免颜色过“艳” */
-      brightness(400%)     /* 亮度从 120 → 180，大幅提亮黑色基底 */
-      contrast(95%);       /* 反差 110 → 90，弱化极深黑 */
+    filter: hue-rotate(190deg) saturate(80%) brightness(120%) contrast(110%);
+  }
+  
+  /* Stat card styles for right sidebar */
+  .stat-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+  }
+  .stat-value { font-size: 4rem; font-weight: 700; color: #f8fafc; line-height: 1; }
+  .stat-label { font-size: 1rem; font-weight: 500; color: #94a3b8; margin-top: 0.5rem; }
+  .stat-error { font-size: 1rem; color: #ef4444; }
+  
+  /* --- Final Title Bar Styles --- */
+  
+  .title-bar-content {
+    display: flex;
+    justify-content: flex-end; /* Push clock to the right */
+    align-items: center;
+    width: 100%;
+    position: relative; /* Needed for absolute centering of the title */
+  }
+
+  /* This is the rule that fixes the vertical stacking */
+  .title-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    /* Absolute centering */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); 
+  }
+  
+  .title-text {
+    font-family: 'Inter', sans-serif; /* Modern, clean font */
+    font-size: 2.2rem;
+    font-weight: 600; /* Slightly less bold for a cleaner look */
+    letter-spacing: 0.05em; /* Reduced letter spacing for Inter */
+    text-transform: uppercase;
+    color: #fff; /* White color */
+    animation: pulse-text 2.5s infinite ease-in-out; /* Breathing animation for text */
+  }
+
+  .title-icon {
+    font-size: 2.5rem;
+    color: #fff; /* White icon */
+    /* Blue glow effect */
+    filter: drop-shadow(0 0 6px rgba(79, 195, 247, 0.7));
+  }
+
+  /* Animation for the text glow */
+  @keyframes pulse-text {
+    0% {
+      text-shadow: 0 0 4px rgba(79, 195, 247, 0.4);
+    }
+    50% {
+      text-shadow: 0 0 12px rgba(79, 195, 247, 0.9);
+    }
+    100% {
+      text-shadow: 0 0 4px rgba(79, 195, 247, 0.4);
+    }
+  }
+  
+  .clock-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .pause-button {
+    background-color: rgba(71, 85, 105, 0.5);
+    border: 1px solid #475569;
+    color: #e2e8f0;
+    padding: 8px 16px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  
+  .pause-button:hover {
+    background-color: rgba(71, 85, 105, 0.8);
+    border-color: #64748b;
   }

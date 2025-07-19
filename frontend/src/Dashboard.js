@@ -29,7 +29,7 @@ const Dashboard = () => {
 
                 setAssets(assetsRes.data || []);
                 setSensorReadings(sensorReadingsRes.data);
-                setCurrentTime(new Date('2024-11-01T00:00:00Z')); 
+                setCurrentTime(new Date('2024-11-11T00:00:00Z')); 
                 setError(null);
             } catch (err) {
                 setError("Failed to fetch data.");
@@ -117,7 +117,7 @@ const Dashboard = () => {
             </div>
             
             <div className="right-sidebar-area">
-                <RightSidebar/>
+                <RightSidebar currentTime={currentTime} assets={assetsWithCurrentData} />
             </div>
         </div>
     );

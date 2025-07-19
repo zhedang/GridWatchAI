@@ -1,77 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
-const PredictionSummary = () => {
-    // State to hold our final number, loading status, and any errors
-    const [failureCount, setFailureCount] = useState(0);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchPredictionCount = async () => {
-            // Define our "high risk" threshold
-            const RISK_THRESHOLD = 0.4; // 50% probability
+const PredictionSummary = ({ currentTime }) => {
+  const [count, setCount] = useState(0);
+  const [error, setError] = useState(null);
+  const lastDate = useRef(null); // 记录上一次查询的日期
 
-            try {
-                setLoading(true);
+  useEffect(() => {
+    if (!currentTime) return;
 
-                // This is the clever part. We ask PostgREST for two things:
-                // 1. Filter the results where probability is greater than our threshold (gt.0.8)
-                // 2. Add a special header 'Prefer: count=exact' to ask for the total count
-                //    without downloading all the data.
-                const response = await axios.get(
-                    `http://localhost:3000/asset_predictions?failure_probability=gt.${RISK_THRESHOLD}`,
-                    {
-                        headers: {
-                            'Prefer': 'count=exact'
-                        }
-                    }
-                );
-                
-                // The total count is returned in a 'Content-Range' header, e.g., "0-24/150"
-                const contentRange = response.headers['content-range'];
-                if (contentRange) {
-                    // We extract the number after the "/"
-                    const total = parseInt(contentRange.split('/')[1], 10);
-                    setFailureCount(total);
-                }
-                
-                setError(null);
-            } catch (err) {
-                console.error("Error fetching prediction count:", err);
-                setError("Could not load prediction data.");
-            } finally {
-                setLoading(false);
-            }
-        };
+    const today = currentTime.toISOString().split('T')[0];
+    if (today === lastDate.current) return; // 同一天不再请求
+    lastDate.current = today;
 
-        fetchPredictionCount();
-    }, []); // The empty array [] means this effect runs once when the component mounts
+    const THRESHOLD = 0.35;
+    const endDate = new Date(currentTime.getTime() + 7 * 86400000)
+      .toISOString()
+      .split('T')[0];
 
-    // Helper function to render the content based on state
-    const renderContent = () => {
-        if (loading) {
-            return <div className="stat-value">...</div>;
-        }
-        if (error) {
-            return <div className="stat-error">{error}</div>;
-        }
-        return (
-            <>
-                <div className="stat-value">{failureCount}</div>
-                <div className="stat-label">High-Risk Assets</div>
-            </>
-        );
-    };
+    axios
+      .get(
+        `http://localhost:3000/asset_predictions` +
+          `?prediction_date=gte.${today}&prediction_date=lte.${endDate}` +
+          `&failure_probability=gte.${THRESHOLD}`
+      )
+      .then(res => {
+        const uniq = new Set(res.data.map(r => r.asset_id));
+        setCount(uniq.size);
+        setError(null);
+      })
+      .catch(() => {
+        setError('Error');
+        setCount(0);
+      });
+  }, [currentTime]);
 
-    return (
-        <>
-            <h3 className="panel-title">7-Day Failure Prediction</h3>
-            <div className="stat-card-content">
-                {renderContent()}
+  return (
+    <>
+      <h3 className="panel-title">7-Day Failure Prediction</h3>
+      <div className="stat-card-content">
+        {error ? (
+          <div className="stat-error">{error}</div>
+        ) : (
+          <>
+            <div
+              className="stat-value"
+              style={{ color: count === 0 ? '#f8fafc' : '#ef4444' }}
+            >
+              {count}
             </div>
-        </>
-    );
+            <div className="stat-label">High-Risk Assets</div>
+          </>
+        )}
+      </div>
+    </>
+  );
 };
 
 export default PredictionSummary;

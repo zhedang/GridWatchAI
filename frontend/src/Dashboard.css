@@ -184,3 +184,40 @@ body {
     color: #94a3b8;
     text-align: center;
   }
+
+
+  .right-sidebar-stack {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 20px;          /* 你原本就有 gap，可保留 / 调整 */
+  }
+  
+  .right-sidebar-stack .dashboard-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* ★ 上下比例：40% / 60%   */
+  .right-sidebar-stack .dashboard-panel:first-child {
+    flex: 0 0 40%;
+  }
+  .right-sidebar-stack .dashboard-panel:last-child {
+    flex: 0 0 60%;
+  }
+  
+  /* 面板内部内容垂直居中，不再撑爆父级 */
+  .right-sidebar-stack .stat-card-content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;      /* 防止圆环超出 */
+  }
+  
+  /* 环形图大小统一控制，保证不会挤破布局 */
+  .circular-gauge {
+    width: 140px;
+    height: 140px;
+  }

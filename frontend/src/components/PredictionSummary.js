@@ -1,20 +1,20 @@
+// src/components/PredictionSummary.js
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-
 
 const PredictionSummary = ({ currentTime }) => {
   const [count, setCount] = useState(0);
   const [error, setError] = useState(null);
-  const lastDate = useRef(null); // 记录上一次查询的日期
+  const lastDate = useRef(null);
 
   useEffect(() => {
     if (!currentTime) return;
 
     const today = currentTime.toISOString().split('T')[0];
-    if (today === lastDate.current) return; // 同一天不再请求
+    if (today === lastDate.current) return;
     lastDate.current = today;
 
-    const THRESHOLD = 0.35;
+    const THRESHOLD = 0.4;
     const endDate = new Date(currentTime.getTime() + 7 * 86400000)
       .toISOString()
       .split('T')[0];
@@ -37,7 +37,7 @@ const PredictionSummary = ({ currentTime }) => {
   }, [currentTime]);
 
   return (
-    <>
+    <div className="dashboard-panel">
       <h3 className="panel-title">7-Day Failure Prediction</h3>
       <div className="stat-card-content">
         {error ? (
@@ -46,7 +46,10 @@ const PredictionSummary = ({ currentTime }) => {
           <>
             <div
               className="stat-value"
-              style={{ color: count === 0 ? '#f8fafc' : '#ef4444' }}
+              style={{
+                fontSize: '3rem',
+                color: count === 0 ? '#f8fafc' : '#ef4444'
+              }}
             >
               {count}
             </div>
@@ -54,7 +57,7 @@ const PredictionSummary = ({ currentTime }) => {
           </>
         )}
       </div>
-    </>
+    </div>
   );
 };
 

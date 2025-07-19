@@ -8,10 +8,8 @@ import AssetMap from './components/AssetMap';
 import RightSidebar from './components/RightSidebar';
 
 const Dashboard = () => {
-    // --- NEW STATE for the timer control ---
+    // --- STATE ---
     const [isPaused, setIsPaused] = useState(false);
-
-    // Existing states
     const [assets, setAssets] = useState([]);
     const [sensorReadings, setSensorReadings] = useState([]);
     const [currentTime, setCurrentTime] = useState(null); 
@@ -19,7 +17,7 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const [selectedAssetId, setSelectedAssetId] = useState(null);
 
-    // Fetching data useEffect (no changes here)
+    // --- DATA FETCHING ---
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -43,9 +41,8 @@ const Dashboard = () => {
         fetchData();
     }, []);
 
-    // --- UPDATED useEffect for the clock "engine" ---
+    // --- SIMULATION CLOCK ENGINE ---
     useEffect(() => {
-        // Don't start the timer until loaded, OR if it's paused
         if (loading || error || isPaused) {
             return; // Exit the effect if paused
         }
@@ -64,16 +61,19 @@ const Dashboard = () => {
             });
         }, 1000); 
         
-        // This cleanup function runs when the component unmounts OR when the effect re-runs
         return () => clearInterval(timer); 
-    }, [loading, error, isPaused]); // Now depends on isPaused state
+    }, [loading, error, isPaused]);
 
-    // --- NEW function to toggle the pause state ---
+    // --- EVENT HANDLERS ---
     const togglePause = () => {
         setIsPaused(prevPausedState => !prevPausedState);
     };
     
-    // Data derivation logic (no changes)
+    const handleAssetSelect = (assetId) => {
+        setSelectedAssetId(assetId);
+    };
+
+    // --- DERIVED DATA ---
     const sensorReadingsMap = useMemo(() => {
         const map = new Map();
         sensorReadings.forEach(r => {
@@ -93,17 +93,13 @@ const Dashboard = () => {
             return { ...asset, voltage: sensorReading.voltage, failure_label: sensorReading.failure_label };
         });
     }, [currentTime, assets, sensorReadingsMap]);
-
-    const handleAssetSelect = (assetId) => {
-        setSelectedAssetId(assetId);
-    };
     
     const selectedAsset = assetsWithCurrentData.find(a => a.asset_id === selectedAssetId);
 
+    // --- RENDER ---
     return (
         <div className="dashboard-container">
             <div className="dashboard-panel title-bar-area">
-                {/* Pass the new state and function down to the TitleBar */}
                 <TitleBar 
                     currentTime={currentTime} 
                     isPaused={isPaused} 
@@ -112,7 +108,8 @@ const Dashboard = () => {
             </div>
 
             <div className="dashboard-panel details-area">
-                <AssetDetailView asset={selectedAsset} />
+                {/* This is the line that was updated from your version */}
+                <AssetDetailView asset={selectedAsset} currentTime={currentTime} />
             </div>
 
             <div className="dashboard-panel main-map-area">
@@ -120,7 +117,7 @@ const Dashboard = () => {
             </div>
             
             <div className="right-sidebar-area">
-                <RightSidebar />
+                <RightSidebar/>
             </div>
         </div>
     );

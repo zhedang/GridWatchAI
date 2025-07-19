@@ -10,7 +10,7 @@ const PredictionSummary = () => {
     useEffect(() => {
         const fetchPredictionCount = async () => {
             // Define our "high risk" threshold
-            const RISK_THRESHOLD = 0.8; // 80% probability
+            const RISK_THRESHOLD = 0.4; // 50% probability
 
             try {
                 setLoading(true);

@@ -152,3 +152,35 @@ body {
     background-color: rgba(71, 85, 105, 0.8);
     border-color: #64748b;
   }
+  /* Asset_View */
+  .details-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #64748b; /* Muted gray for placeholder text */
+    font-size: 1.1rem;
+  }
+  
+  .details-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 20px;
+  }
+  
+  .chart-container {
+    flex: 1;
+    min-height: 240px;  
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  
+  .chart-container h4 {
+    margin: 0 0 10px 0;
+    font-weight: 500;
+    color: #94a3b8;
+    text-align: center;
+  }

@@ -1,45 +1,110 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import HistoricalChart from './HistoricalChart';
+import ProbabilityGauge from './ProbabilityGauge';
 
-const AssetDetailView = ({ asset }) => {
-    
-    // 每当传入的 asset 发生变化时，这个 hook 就会运行
-    useEffect(() => {
-        if (asset) {
-            console.log("Details view updated for asset:", asset.asset_id);
-            // 未来，所有获取历史数据和图表渲染的逻辑都将从这里开始！
-        }
-    }, [asset]);
+const getAssetDisplayName = (asset) => {
+    if (!asset) return '';
+    const prefix = asset.asset_type || '';
+    const suffix = asset.asset_id?.slice(0, 5) || '';
+    return `${prefix}_${suffix}`;
+  };
 
-    // 如果没有选中任何资产，显示提示信息
-    if (!asset) {
-        return (
-            <>
-                <h3 className="panel-title">Asset Details</h3>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#475569' }}>
-                    <p>Select an asset on the map to see details here.</p>
-                </div>
-            </>
-        );
-    }
+const AssetDetailView = ({ asset, currentTime }) => {
+  const [historicalData, setHistoricalData] = useState([]);
+  const [predictionData, setPredictionData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const lastFetched = useRef(null);
 
-    // 如果选中了资产，就显示其信息
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!asset || !currentTime) return;
+
+      const simDate = currentTime.toISOString().split('T')[0];
+      if (asset.asset_id === lastFetched.current?.id && simDate === lastFetched.current?.date) return;
+
+      setIsLoading(true);
+      setError('');
+      try {
+        const [histRes, predRes] = await Promise.all([
+          axios.post('http://localhost:3000/rpc/get_daily_voltage_history', {
+            p_asset_id: asset.asset_id,
+            p_end_date: simDate,
+          }),
+          axios.get(
+            `http://localhost:3000/asset_predictions?asset_id=eq.${asset.asset_id}&prediction_date=eq.${simDate}`,
+          ),
+        ]);
+
+        const cleaned = histRes.data
+          .filter(d => d.avg_voltage != null && d.avg_voltage !== '')
+          .map(d => ({ ...d, avg_voltage: Number(d.avg_voltage) }))
+          .filter(d => !Number.isNaN(d.avg_voltage))
+          .reverse();
+
+        setHistoricalData(cleaned);
+        setPredictionData(predRes.data[0] || null);
+        lastFetched.current = { id: asset.asset_id, date: simDate };
+      } catch {
+        setError('Could not load details for this asset.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [asset, currentTime]);
+
+  if (!asset) {
     return (
-        <>
-            <h3 className="panel-title">{asset.name} ({asset.asset_type})</h3>
-            <div style={{ padding: '10px' }}>
-                <p>Asset ID: {asset.asset_id}</p>
-                <p>Current Status: {asset.failure_label === 1 ? 'Failure' : 'Normal'}</p>
-                
-                <div style={{ marginTop: '30px', color: '#475569', textAlign: 'center' }}>
-                    <h4>Historical Data Chart will be here</h4>
-                </div>
-                
-                <div style={{ marginTop: '30px', color: '#475569', textAlign: 'center' }}>
-                    <h4>Failure Probability Gauge will be here</h4>
-                </div>
-            </div>
-        </>
+      <>
+        <h3 className="panel-title">Asset Details</h3>
+        <div className="details-placeholder">
+          <p>Select an asset on the map to see details here.</p>
+        </div>
+      </>
     );
+  }
+
+  if (isLoading) {
+    return (
+      <>
+        <h3 className="panel-title">{asset.name}</h3>
+        <div className="details-placeholder">
+          <p>Loading asset details...</p>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <h3 className="panel-title">{asset.name}</h3>
+        <div className="details-placeholder">
+          <p style={{ color: '#ef4444' }}>{error}</p>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <h3 className="panel-title">Asset: {getAssetDisplayName(asset)}</h3>
+
+      <div className="details-content">
+        <div className="chart-container">
+          <h4>Avg. Daily Voltage (Last 30 Days)</h4>
+          <HistoricalChart data={historicalData} />
+        </div>
+        <div className="chart-container">
+          <h4>Failure Probability for Today</h4>
+          <ProbabilityGauge data={predictionData} />
+        </div>
+      </div>
+    </>
+  );
 };
 
 export default AssetDetailView;

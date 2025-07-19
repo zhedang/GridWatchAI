@@ -25,8 +25,7 @@ const AssetMarker = ({ asset, greenIcon, redIcon, onSelect }) => {
             }}
         >
             <Popup>
-                <b>{asset.name}</b><br />
-                {asset.asset_type}
+                {`${asset.asset_type}_${asset.asset_id?.slice(0, 5)}`}
             </Popup>
         </Marker>
     );

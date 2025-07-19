@@ -1,60 +1,30 @@
 import React from 'react';
-import { ResponsiveContainer, RadialBarChart, RadialBar, PolarAngleAxis } from 'recharts';
 
+/**
+ * Horizontal bar gauge
+ * props.data = { failure_probability: 0 – 1 }
+ */
 const ProbabilityGauge = ({ data }) => {
-    if (!data) {
-        return <div style={{textAlign: 'center', color: '#94a3b8'}}>No prediction data available.</div>;
-    }
+  const prob = data?.failure_probability ?? 0;
+  const pct = Math.round(prob * 100);      // 0–100
+  const left = `${pct}%`;                  // 指针位置
 
-    const probability = data.failure_probability || 0;
-    const percentage = Math.round(probability * 100);
+  // 文本颜色：<=39 绿，40–69 黄，>=70 红
+  const txtColor =
+    pct >= 70 ? '#ef4444' : pct >= 40 ? '#facc15' : '#22c55e';
 
-    // Change color based on risk level
-    let fillColor = '#22c55e'; // Green (low risk)
-    if (percentage > 50) fillColor = '#f59e0b'; // Yellow (medium risk)
-    if (percentage > 80) fillColor = '#ef4444'; // Red (high risk)
+  return (
+    <div className="bar-gauge-wrapper">
+      <div className="bar-gauge-track">
+        {/* 白色竖线 + 小三角指针 */}
+        <div className="bar-gauge-pointer" style={{ left }} />
+      </div>
 
-    // The data for the chart needs to be in an array
-    const chartData = [{ name: 'Probability', value: percentage }];
-
-    return (
-        <ResponsiveContainer width="100%" height="100%">
-            <RadialBarChart
-                innerRadius="80%"
-                outerRadius="100%"
-                data={chartData}
-                startAngle={180}
-                endAngle={0}
-                barSize={30}
-            >
-                <PolarAngleAxis
-                    type="number"
-                    domain={[0, 100]}
-                    angleAxisId={0}
-                    tick={false}
-                />
-                <RadialBar
-                    background
-                    dataKey="value"
-                    angleAxisId={0}
-                    fill={fillColor}
-                    cornerRadius={15}
-                />
-                {/* Text in the middle of the gauge */}
-                <text
-                    x="50%"
-                    y="70%"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontSize="3rem"
-                    fontWeight="600"
-                    fill={fillColor}
-                >
-                    {`${percentage}%`}
-                </text>
-            </RadialBarChart>
-        </ResponsiveContainer>
-    );
+      <div className="bar-gauge-text" style={{ color: txtColor }}>
+        {pct}%
+      </div>
+    </div>
+  );
 };
 
 export default ProbabilityGauge;

@@ -221,3 +221,64 @@ body {
     width: 140px;
     height: 140px;
   }
+
+
+/* ───── Horizontal Gauge Styles ───── */
+.bar-gauge-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .bar-gauge-track {
+    position: relative;
+    width: 100%;
+    height: 22px;
+    border-radius: 11px;
+    background: linear-gradient(
+      to right,
+      #22c55e 0%,
+      #facc15 50%,
+      #ef4444 100%
+    );
+    overflow: visible;   /* ← 让指针能伸出可见 */
+  }
+  
+  .bar-gauge-pointer {
+    position: absolute;
+    left: 0;                      /* 水平位置由 inline-style 控制 */
+    top: 0;                       /* 竖线从条顶开始 */
+    width: 2px;
+    height: 100%;                 /* 竖线与条同高 */
+    background: #ffffff;
+    transform: translateX(-50%);  /* 让竖线水平居中 */
+  }
+  
+  /* 上 ▼（箭头向下）*/
+  .bar-gauge-pointer::before {
+    content: '';
+    position: absolute;
+    top: -6px;                    /* 紧贴竖线顶部 */
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #ffffff;    /* ▼ */
+  }
+  
+  /* 下 ▲（箭头向上）*/
+  .bar-gauge-pointer::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;                 /* 紧贴竖线底部 */
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-bottom-color: #ffffff; /* ▲ */
+  }
+  
+  .bar-gauge-text {
+    font-size: 2.4rem;
+    font-weight: 700;
+  }
+  

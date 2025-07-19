@@ -14,7 +14,7 @@ const PredictionSummary = ({ currentTime }) => {
     if (today === lastDate.current) return;
     lastDate.current = today;
 
-    const THRESHOLD = 0.4;
+    const THRESHOLD = 0.35;
     const endDate = new Date(currentTime.getTime() + 7 * 86400000)
       .toISOString()
       .split('T')[0];

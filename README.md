@@ -41,16 +41,20 @@
 
 | Layer        | Tech / Libs                                  |
 |--------------|----------------------------------------------|
-| **Data**     | Canadian Gov weather API, Python (simulation)|
+| **Data**     | Canadian Gov weather, Python (simulation)    |
 | **ML**       | XGBoost, scikit-learn                        |
-| **Database** | PostgreSQL 15                                |
-| **API**      | PostgREST 12                                 |
-| **Front-end**| React 18, Leaflet, Recharts                  |
+| **Database** | PostgreSQL                                   |
+| **API**      | PostgREST                                    |
+| **Front-end**| React, Leaflet, Recharts                     |
 
 ---
 
-## Demo png
+## Demo PNG
 
 ![Dashboard Screenshot](demo/demo.png)
 
 ---
+
+## Demo GIF
+
+![Dashboard Demo](demo/demo.gif)
